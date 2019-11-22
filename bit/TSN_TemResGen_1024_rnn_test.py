@@ -36,7 +36,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 25
@@ -61,7 +61,7 @@ class TSN_BIT(nn.Module):
 
     def __init__(self):
         super(TSN_BIT, self).__init__()
-        # self.tsn = TSN(num_class, num_segments=num_segments, modality=modality,        
+        # self.tsn = TSN(num_class, num_segments=num_segments, modality=modality,
         '''For Flow, put data_length at num_segments'''
         self.tsn = TSN(num_class, num_segments=data_length, modality=modality,
             base_model=arch,
@@ -195,10 +195,10 @@ if __name__ == '__main__':
             target.cuda()
 
             gen_fea, org_fea = net(input_var, b_shape, warmup_t, pred_t, fea_stage)
-            
+
             gen_fea = torch.stack(gen_fea).transpose_(0, 1).contiguous().view(-1, 1024)
             org_fea = torch.stack(org_fea).transpose_(0, 1).contiguous().view(-1, 1024)
-            
+
             ''' Sub-sample number of frames for recognition '''
             # gen_fea = gen_fea.contiguous().view(-1, fea_chns, fea_stage, fea_stage)
             # org_fea = org_fea.contiguous().view(-1, fea_chns, fea_stage, fea_stage)

@@ -74,7 +74,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 32
@@ -147,7 +147,7 @@ class TSN_BIT(nn.Module):
 
     def fea_gen_forward(self, input, batch_size, warmup_t, pred_t, slide_wind):
         '''
-            return: 
+            return:
                 warm_diff, fea_diff, gen_dif_grad, fea_dif_grad, gen_fea, org_fea
         '''
         x, y, _, _, _, _ = self.tsn.fea_gen_forward(input, batch_size, warmup_t, pred_t, slide_wind)

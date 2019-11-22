@@ -39,7 +39,7 @@
 
     Update 2019.02.20:
         1. Use Motion Vector as Generator to produce the next-step feature residual;
-        2. 
+        2.
 """
 
 import os, sys, cv2
@@ -68,7 +68,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 32
@@ -151,14 +151,14 @@ class TSN_BIT(nn.Module):
         @param: batch_size: batch
         @param: warmup_t: warm up time-step observation to compute residual for later prediction, >= 2;
         @param: pred-t: number of time-step to predict, >=1;
-        
+
         @return:
             1. list of generated feature;
             2. list of origin feature;
             3. list of generated residual;
             4. list of origin residual
             5. list of generated diff grad;
-            6. list of org diff grad;        
+            6. list of org diff grad;
         '''
 
         x, y, z, w, u, v = self.tsn.fea_gen_forward(input, batch_size, warmup_t, pred_t, slide_wind)

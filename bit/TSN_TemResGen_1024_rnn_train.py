@@ -70,7 +70,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 32
@@ -229,7 +229,7 @@ for epoch in range(50):
         target = target.cuda()
 
         gen_fea, org_fea = net(input_var, batch_size, warmup_t, pred_t, fea_stage)
-        
+
         gen_fea = torch.squeeze(torch.stack(gen_fea).transpose_(0, 1))
         org_fea = torch.squeeze(torch.stack(org_fea).transpose_(0, 1))
         # gen_diff = torch.stack(gen_diff).transpose_(0, 1)

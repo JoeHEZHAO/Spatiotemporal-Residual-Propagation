@@ -14,22 +14,22 @@ Update 2019.02.04:
     5. Instead of compute loss from deep feature, cmopute loss from feature diff;[Change return value in model_tem_res_gen_v3.py:fea_gen_forward]
     6. l2 norm on kalman gain is not very efficient; Try use l1 norm instead;
     7. Rethink about the usage of kalman gain; If do not optim on K, K ==> 1, fully depend on gt; If optim on K, K ==> 0, fully depend on generated feature;
-    8. K could be influenced by sigmoid or relu:    
+    8. K could be influenced by sigmoid or relu:
         1. Remove relu and sigmoid and retry; ===> loss become Nan;
         2. Remove relu, keep sigmoid use l1 norm on kalman_gain ===> Start to learnable, lets see how small it can be (why ??);
         3. -relu, +sigmoid, l2 ===> ?;
-        4. weights norm 
+        4. weights norm
 
 Update 2019.02.05:
     1. Modify the kalman_gain loss, as a ranking loss, which encourge later time-step to utilize more origin feature;
     2. l2 norm for time t, belonging to [0, T],
        l2_norm = t / T * l2;
-    3. Reference from https://basurafernando.github.io/papers/ICCV17.pdf; 
+    3. Reference from https://basurafernando.github.io/papers/ICCV17.pdf;
 
 """
 
 import os, sys, cv2
-import numpy as np 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -41,7 +41,7 @@ from collections import OrderedDict
 
 ''' Use class/package from tsn-pytorch'''
 sys.path.append('/home/zhufl/Temporal-Residual-Motion-Generation/tsn-pytorch')
-from model_tem_res_gen_v3 import TSN 
+from model_tem_res_gen_v3 import TSN
 from transforms import *
 from ops import ConsensusModule
 from dataset_JHMDB import TSNDataSet
@@ -53,7 +53,7 @@ arch = 'BNInception'
 num_class = 51
 modality = 'RGB'
 crop_fusion_type= 'avg'
-num_segments = 14
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 32
@@ -160,7 +160,7 @@ net.train()
 net.tsn.train = train
 net.tsn.kalman_update = kalman_update
 
-'''' 
+''''
     Freeze all parameters of BN layer
     This will make sure that original TSN feature doesn not change at all; Based on this, learning motion branch is useful;
     In tensorflow code, need to pay attention this;
@@ -177,7 +177,7 @@ optimizer = torch.optim.Adam(param, lr = 0.001, betas= (0.9, 0.99), weight_decay
 criterion = nn.MSELoss(reduction='mean')
 
 ''' Load Dataset '''
-''' data_length can control how many segments can we get from individual video ''' 
+''' data_length can control how many segments can we get from individual video '''
 train_list = '/home/zhufl/Data2/jhmdb_frame/new_train.txt'
 test_list = '/home/zhufl/Data2/jhmdb_frame/new_test.txt'
 train_augmentation = net.tsn.get_augmentation()
@@ -216,7 +216,7 @@ for epoch in range(15):
         target = target.cuda()
 
         # gen_fea, org_fea, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)
-        gen_fea, org_fea, gen_fea_diff, org_fea_diff, gen_fea_diff_grad, org_fea_diff_grad, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)        
+        gen_fea, org_fea, gen_fea_diff, org_fea_diff, gen_fea_diff_grad, org_fea_diff_grad, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)
 
         gen_fea = torch.stack(gen_fea).transpose_(0, 1)
         org_fea = torch.stack(org_fea).transpose_(0, 1)
@@ -229,7 +229,7 @@ for epoch in range(15):
 
         gen_fea_diff_grad = torch.stack(gen_fea_diff_grad).transpose_(0, 1)
         org_fea_diff_grad = torch.stack(org_fea_diff_grad).transpose_(0, 1)
-    
+
         org_fea.detach()
         org_fea_diff.detach()
         org_fea_grad.detach()
@@ -237,13 +237,13 @@ for epoch in range(15):
         '''
             Though not training of mse of feature and feature grad, Printing out results help us monitoring training process;
         '''
-        loss1 = criterion(gen_fea, org_fea)        
+        loss1 = criterion(gen_fea, org_fea)
         loss2 = criterion(gen_fea_diff, org_fea_diff)
-        loss4 = criterion(gen_fea_grad, org_fea_grad) 
+        loss4 = criterion(gen_fea_grad, org_fea_grad)
         loss5 = criterion(gen_fea_diff_grad, org_fea_diff_grad)
         # loss3 = sum([x.norm(1) for idx, x in enumerate(kalman_gain_list) if idx < 1 ])
         loss3 = sum([x.norm(2) for idx, x in enumerate(kalman_gain_list)])
-        
+
         loss = loss2 + loss5
         # loss = 0.01 * loss3
         loss.backward()

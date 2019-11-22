@@ -25,25 +25,6 @@
         3. Coding func gen_fea_cls() for TSN of model_temp_res_gen.py (/home/zhufl/Workspace/tsn-pytorch);
         4. Coding func gen_fea_cls() for BNInception of BNIncepton_model.py (/home/zhufl/Workspace/tsn-pytorch);
         5. func gen_fea_cls() of model_temp_res_gen.py is handling Consensus and Modality;
-
-    Update 2019.01.25:
-    For TSN_TemResGen_2019-01-25_13-18-10.pth
-        1. Testing with org_fea, result is 83.35%; Means only Generator got trained and other-part stay the same;
-        2. Testing with gen_fea, result is 57.46%;
-        3. Reasons could be:
-            1. Should not use train_augmentation for data augmentation; Only use Center Cropping;
-            2. Training is not converged enough;
-
-    Update 2019.01.28:
-        1. Equip Multi-GPUs module with network;
-        2. Important for DataParallel:
-            1. Wrap the model with DataParallel;
-            2. Wrap all func in one func;
-            3. Be careful when change the data shape:
-                1. Before put input into forward() func, batch/dim=0 is not divided;
-                2. In forward() func, batch is divided by the number of GPU utiliz;
-            4. DataParallel works for all submodule of network, but just remember to include whole training/testing
-            process in one forward() func;
 """
 
 from __future__ import division
@@ -76,7 +57,7 @@ arch = 'BNInception'
 num_class = 51
 modality = 'RGB'
 crop_fusion_type= 'avg'
-num_segments = 14
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 32
@@ -149,7 +130,7 @@ class TSN_BIT(nn.Module):
 
     def fea_gen_forward(self, input, batch_size, warmup_t, pred_t, slide_wind):
         '''
-            return: 
+            return:
                 warm_diff, fea_diff, gen_dif_grad, fea_dif_grad, gen_fea, org_fea
         '''
         x, y, _, _, _, _ = self.tsn.fea_gen_forward(input, batch_size, warmup_t, pred_t, slide_wind)

@@ -21,27 +21,6 @@
     Update:
         1. Modify dataset_JHMDB to sample fixed frame index when testing;
         2. Adding confusion matrix ploting func;
-
-    Update 2019.01.25:
-        1. Using only 2 frames out of 14; To compare with feature generation;
-        2. Adding num_segments_test parameter, for controlling how many frames to be used after sampling;
-
-    Update 2019.01.26:
-        1. Dynamic adapt percentage p, for testing accuracy under different frame number;
-            p=1 ==> 74.31%;
-            p=2 ==> 76.23%;
-            p=3 ==> 75.37%;
-            p=4 ==> 76.80%;
-            p=5 ==> 77.53%;
-            p=6 ==> 77.92%;
-            p=7 ==> 78.65%;
-            p=8 ==> 77.76%;
-            p=9 ==> 79.46%;
-            p=10 ==> 81.81%;
-            p=11 ==> 81.81%;
-            p=12 ==> 83.04%;
-            p=13 ==> 83.36%;
-            p=14 ==> 83.39%;
 """
 
 import os, sys, cv2
@@ -69,7 +48,7 @@ arch = 'BNInception'
 num_class = 51
 modality = 'RGB'
 crop_fusion_type= 'avg'
-num_segments = 14
+num_segments = 25
 flow_prefix = 'flow_'
 batch_size = 32
 workers = 1

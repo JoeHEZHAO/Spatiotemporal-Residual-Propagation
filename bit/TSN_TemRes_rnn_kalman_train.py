@@ -14,19 +14,19 @@ Update 2019.02.04:
     5. Instead of compute loss from deep feature, cmopute loss from feature diff;[Change return value in model_tem_res_gen_v3.py:fea_gen_forward]
     6. l2 norm on kalman gain is not very efficient; Try use l1 norm instead;
     7. Rethink about the usage of kalman gain; If do not optim on K, K ==> 1, fully depend on gt; If optim on K, K ==> 0, fully depend on generated feature;
-    8. K could be influenced by sigmoid or relu:    
+    8. K could be influenced by sigmoid or relu:
         1. Remove relu and sigmoid and retry; ===> loss become Nan;
         2. Remove relu, keep sigmoid use l1 norm on kalman_gain ===> Start to learnable, lets see how small it can be (why ??);
         3. -relu, +sigmoid, l2 ===> ?;
-        4. weights norm 
+        4. weights norm
 
 Update 2019.02.05:
     1. Adapt rnn kalman model for BIT dataset;
-    2. 
+    2.
 
 """
 import os, sys, cv2
-import numpy as np 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -40,7 +40,7 @@ cur_dir = os.path.dirname(os.path.realpath(__file__))
 
 ''' Use class/package from tsn-pytorch'''
 sys.path.append(os.path.join(cur_dir, '../../tsn-pytorch'))
-from model_tem_res_gen_v3 import TSN 
+from model_tem_res_gen_v3 import TSN
 from transforms import *
 from ops import ConsensusModule
 from dataset_BIT import TSNDataSet
@@ -52,7 +52,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 16
@@ -161,7 +161,7 @@ net.train()
 net.tsn.train = train
 net.tsn.kalman_update = kalman_update
 
-'''' 
+''''
     Freeze all parameters of BN layer
     This will make sure that original TSN feature doesn not change at all; Based on this, learning motion branch is useful;
     In tensorflow code, need to pay attention this;
@@ -178,7 +178,7 @@ optimizer = torch.optim.Adam(param, lr = 0.005, betas= (0.9, 0.99), weight_decay
 criterion = nn.MSELoss()
 
 ''' Load Dataset '''
-''' data_length can control how many segments can we get from individual video ''' 
+''' data_length can control how many segments can we get from individual video '''
 train_list = '/home/zhufl/Data2/BIT_train_test_split/new_train.txt'
 test_list = '/home/zhufl/Data2/BIT_train_test_split/new_test.txt'
 train_augmentation = net.tsn.get_augmentation()
@@ -217,7 +217,7 @@ for epoch in range(100):
         target = target.cuda()
 
         # gen_fea, org_fea, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)
-        gen_fea, org_fea, gen_fea_diff, org_fea_diff, _, _, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)        
+        gen_fea, org_fea, gen_fea_diff, org_fea_diff, _, _, gen_fea_grad, org_fea_grad, kalman_gain_list = net.fea_gen_forward(input_var, batch_size, warmup_t, pred_t)
 
         gen_fea = torch.stack(gen_fea).transpose_(0, 1)
         org_fea = torch.stack(org_fea).transpose_(0, 1)
@@ -227,16 +227,16 @@ for epoch in range(100):
 
         gen_fea_grad = torch.stack(gen_fea_grad).transpose_(0, 1)
         org_fea_grad = torch.stack(org_fea_grad).transpose_(0, 1)
-    
+
         org_fea.detach()
         org_fea_diff.detach()
         org_fea_grad.detach()
 
-        loss1 = criterion(gen_fea, org_fea)        
+        loss1 = criterion(gen_fea, org_fea)
         loss2 = criterion(gen_fea_diff, org_fea_diff)
-        loss4 = criterion(gen_fea_grad, org_fea_grad) 
+        loss4 = criterion(gen_fea_grad, org_fea_grad)
         loss3 = sum([x.norm(2) for x in kalman_gain_list])
-        
+
         loss = loss1 + loss2 + loss3.float() + loss4
         loss.backward()
 

@@ -1,6 +1,6 @@
 """
-    Implementation of TSN Residual Motion Generation for BIT Dataset Classification; 
-    
+    Implementation of TSN Residual Motion Generation for BIT Dataset Classification;
+
     1. Using the same sampling strategy for testing (Set test_mode = True), which is getting 10 fixed-index clips with center-cropping and normalization;
     2. Using 2 frames as warm-up, to generate the rest of 8 frames, in total 10 clips;
     3. Loading previous best performance weight_model;
@@ -23,20 +23,20 @@
         1. Migrate TSN Residual Motion Generation code from JHMDB to BIT;
         2. Modify the dataloader, set test_model=True, to allow 10 clips;
         3. Modify the loss to MSELoss();
-        4. Remember, BIT is using Flow branch of UCF101 pretrained Weights, so num_class=101; 
+        4. Remember, BIT is using Flow branch of UCF101 pretrained Weights, so num_class=101;
            ucf101_flow.pth located @ '/home/zhufl/Workspace/tsn-pytorch/ucf101_flow.pth'
         5. data_length=10 & num_segments=5;
 
     Update 2019.01.26:
         1. org_fea only has 89.84%, compared with 92.97%, it is a large drop-down;
-        2. Potential Problem might be the changing of first BN layer; Try freeze all BN layers, 
+        2. Potential Problem might be the changing of first BN layer; Try freeze all BN layers,
         as in RGB_OFF_v2.py, to see if there is performance drop with org_fea;
         3. TSN_TemResGen_2019-01-27_15-00-55.pth confirmed that freezing all BN layer, for keep origin accuracy, is necessary;
         4. How to make TemResGen works for BIT ??
 """
 
 import os, sys, cv2
-import numpy as np 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -63,7 +63,7 @@ arch = 'BNInception'
 num_class = 101
 modality = 'Flow'
 crop_fusion_type= 'avg'
-num_segments = 5
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 16
@@ -182,7 +182,7 @@ net.tsn.train = train
 net.tsn.kalman_update = kalman_update
 
 ''' Load Dataset '''
-''' data_length can control how many segments can we get from individual video ''' 
+''' data_length can control how many segments can we get from individual video '''
 train_list = '/home/zhufl/Data2/BIT_train_test_split/new_train.txt'
 test_list = '/home/zhufl/Data2/BIT_train_test_split/new_test.txt'
 train_augmentation = net.tsn.get_augmentation()
@@ -229,7 +229,7 @@ for epoch in range(1):
             gen_fea = torch.stack(gen_fea).transpose_(0, 1).contiguous().view(b_shape * data_length, -1, 28, 28)
             org_fea = torch.stack(org_fea).transpose_(0, 1).contiguous().view(b_shape * data_length, -1, 28, 28)
 
-            ''' 
+            '''
                 use org_fea for testing if accuray is still the same;
                 use gen_fea for testing our feature generating ability;
             '''

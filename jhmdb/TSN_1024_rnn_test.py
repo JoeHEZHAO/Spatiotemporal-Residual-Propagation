@@ -36,7 +36,7 @@ arch = 'BNInception'
 num_class = 51
 modality = 'RGB'
 crop_fusion_type= 'avg'
-num_segments = 14
+num_segments = 25
 flow_prefix = 'flow_'
 rgb_prefix = 'image_'
 batch_size = 16
@@ -176,10 +176,10 @@ if __name__ == '__main__':
             target = target.detach()
 
             gen_fea, org_fea = net(input_var, b_shape, warmup_t, pred_t, fea_stage)
-            
+
             gen_fea = torch.stack(gen_fea).transpose_(0, 1).contiguous().view(-1, 1024)
             org_fea = torch.stack(org_fea).transpose_(0, 1).contiguous().view(-1, 1024)
-            
+
             ''' Sub-sample number of frames for recognition '''
             # gen_fea = gen_fea.contiguous().view(-1, fea_chns, fea_stage, fea_stage)
             # org_fea = org_fea.contiguous().view(-1, fea_chns, fea_stage, fea_stage)
