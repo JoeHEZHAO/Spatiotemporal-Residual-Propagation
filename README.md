@@ -6,6 +6,7 @@ Code release for ICCV 2019 paper "Spatiotemporal Feature Residual Propagation fo
 2. Pytorch 0.4.0
 3. CUDA-8
 4. ffmpeg
+5. PIL
 
 # Dataset Preparation
 ## Download
