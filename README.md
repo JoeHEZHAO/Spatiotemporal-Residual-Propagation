@@ -13,7 +13,7 @@ Code release for ICCV 2019 paper "Spatiotemporal Feature Residual Propagation fo
 - BIT: https://sites.google.com/site/alexkongy/software
 - UCF101: https://www.crcv.ucf.edu/data/UCF101.php
 
-For dataset loading and preparation, we modify code from tsn (https://github.com/yjxiong/tsn-pytorch/blob/master/dataset.py) for every dataset and the modified version are locating in each sub-folder.
+For dataset loading and augmenting, we modify code from tsn (https://github.com/yjxiong/tsn-pytorch/blob/master/dataset.py) for every dataset and the modified version are locating in each sub-folder.
 
 
 # Pretraining Process:
