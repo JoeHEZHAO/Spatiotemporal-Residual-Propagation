@@ -1,36 +1,5 @@
 """
-Date: 2019.01.20
-Author: He Zhao
-    Implement sample indice for BIT Flow branch:
-        1. Cut off Each video record.num_frames into subset range of [20%, 80%], for removing the starting and ending;
-        2. Segment new record.num_frames into new data length (i.e. 3 in my initial trail);
-        3. Sample 5 index from each data segments;
-        4. return 3 segments, in total 15 frames;
-        5. Adding randomness into sampling process;
-
-    Operation:
-        1. compute video starting and ending index by record.num_frames * 20% and record.num_frames * 80%;
-        2. compute average_duration = (ending - staring) // self.length // self.num_segs;
-        3. return frame index for first segments and interval;
-        4. return 5 frames for each of 3 segments;
-
-    Update 2019.01.20:
-        1. Achieves 67% for best;
-        2. Next, try to achieves higher results by allow over-lapping sample for short-length videos; I.E. 29 length ==> 25 segments which requires 25 * 5 = 125 frames;
-        3. Try Over-Lapping Sampling for testing first;
-
-    Update 2019.01.21:
-        1. Achieves 80.48% for best; The main reason, I suppose, is do random & over-lapping sampling for training process;
-        2. For testing, especially for longer video, I think I need a more robust methods;
-        3. For training, I would like to try using more segments, to see if make difference;
-
-    Update 2019.01.22:
-        1. Modify the code for sparser sampling for longer sequence video, so that information can be utilized more efficiently;
-        2. That is: instead of using 1 interval, uniformly sample during segments;
-
-    Update 2019.01.26:
-        1. Dynamically adapt def _get_test_indices(), Flow, for i in range(self.new_length-2);
-        2. This modification aims to allow dynamically sample more-than/less-than 10 clips;
+Modified dataloader for BIT dataset;
 """
 
 import torch.utils.data as data

@@ -1,48 +1,5 @@
 """
-Date: 2019.01.23
-Author: He Zhao
-    Implement sample indice for JHMDB RGB Branch Dataset:
-        1. Cut off Each video record.num_frames into subset range of [20%, 80%], for removing the starting and ending;
-        2. Segment new record.num_frames into new data length (i.e. 3 in my initial trail);
-        3. Sample 5 index from each data segments;
-        4. return 3 segments, in total 15 frames;
-        5. Adding randomness into sampling process;
-
-    Operation:
-        1. compute video starting and ending index by record.num_frames * 20% and record.num_frames * 80%;
-        2. compute average_duration = (ending - staring) // self.length // self.num_segs;
-        3. return frame index for first segments and interval;
-        4. return 5 frames for each of 3 segments;
-
-    Update 2019.01.20:
-        1. Achieves 67% for best;
-        2. Next, try to achieves higher results by allow over-lapping sample for short-length videos; I.E. 29 length ==> 25 segments which requires 25 * 5 = 125 frames;
-        3. Try Over-Lapping Sampling for testing first;
-
-    Update 2019.01.21:
-        1. Achieves 80.48% for best; The main reason, I suppose, is do random & over-lapping sampling for training process;
-        2. For testing, especially for longer video, I think I need a more robust methods;
-        3. For training, I would like to try using more segments, to see if make difference;
-
-    Update 2019.01.22:
-        1. Modify the code for sparser sampling for longer sequence video, so that information can be utilized more efficiently;
-        2. That is: instead of using 1 interval, uniformly sample during segments;
-
-    Update 2019.01.24:
-        1. When num_seg is 1, segment anchor is np.linspace(starting, ending, 2) ===> [starting, ending]
-        2. This is correct, since I just need to randomly sample on frame from whole video;
-        3. np.linspace would return evenly spaced number;
-        4. Then np.random.randint would add randomness into sampling stage; And it has been demonstrated that using 1 random frames, results is in a random range;
-        5. Attention !! BIT Flow branch, testing frames is uniformly sampled, so that final result is basically stable; While this is unfair for long-term videos;
-        6. Attention !! JHMDB RGB branch, change it to uniform sample and test;
-        7. Done frame-fixed sampling ===> Results is 83.32% for 11 frames;
-
-    Update 2019.01.24:
-        1. Need to set-up another dataloader for Residual Motion Learning;
-        2. First need to decide how many frame I would want to sample;
-        3. For JHMDB, try for 14 frames first; Use the strategy designed for testing;
-
-
+Modified dataloader for JHMDB file;
 """
 
 import torch.utils.data as data
@@ -111,7 +68,7 @@ class TSNDataSet(data.Dataset):
         self.video_list = [VideoRecord(x.strip().split(' ')) for x in open(self.list_file)]
 
     def _sample_indices(self, record):
-        
+
         """
         :param record: VideoRecord
         :return: list
@@ -138,7 +95,7 @@ class TSNDataSet(data.Dataset):
     #     ending = math.ceil(record.num_frames * 0.8)
     #     interval = ending - starting
 
-    #     # average_duration = record.num_frames // self.new_length // self.num_segments        
+    #     # average_duration = record.num_frames // self.new_length // self.num_segments
     #     average_duration = (interval) // self.new_length // self.num_segments
     #     segment_offset = average_duration * self.num_segments
 
@@ -152,7 +109,7 @@ class TSNDataSet(data.Dataset):
     #     return (offsets + 1), int(segment_offset)
 
     def _sample_indices_jhmdb(self, record):
-        
+
         """
         Implmentaton of sparse randomly sampling among evenly divided segments for training process;
         Keep same unit temporal interval between frames;
@@ -206,7 +163,7 @@ class TSNDataSet(data.Dataset):
             Operation:
                 1. Find evenly divided index by 10 * 50; i.e. 89 / 50 = 1.78 ceilling to 2;
                 2. Return first segment index as a = [0, num_segments];
-                3. Compute the rest of segment index as b = [x+interval for x in a]; 
+                3. Compute the rest of segment index as b = [x+interval for x in a];
                 4. For last segments (i==9), if out-range the total video length, then reservsely sample from [record.num_frames - 5, record.num_frames]
                 5. Attention !!! for video that has longer sequence, there must be under-sample happending;
                 6. Attention !!! for short term video, it is handled by over-lapping sampling, for now it should be fine;
@@ -243,7 +200,7 @@ class TSNDataSet(data.Dataset):
                 # return (offsets + 1)
 
         elif self.modality == 'RGB':
-            ''' 
+            '''
             Method A:
                 1. Split video fixed segments;
                 2. Random Sampling frames from each segments;
@@ -256,11 +213,11 @@ class TSNDataSet(data.Dataset):
             #     new_offset = np.random.randint(seg_range[i], seg_range[i+1], size=1)
             #     offsets.extend(new_offset)
 
-            ''' 
+            '''
             Method B:
                 1. Find interval of num_segments;
                 2. Sample frames with fixed interval;
-                3. Results is fixed; 
+                3. Results is fixed;
             '''
             interval = math.ceil(record.num_frames / self.new_length) # video length divded by 10;
             offsets = list()
@@ -328,10 +285,10 @@ class TSNDataSet(data.Dataset):
         #     p = int(seg_ind)
 
         #     for i in range(self.new_length):
-                
+
         #             seg_imgs = self._load_image(record.path, p)
         #             images.extend(seg_imgs)
-                    
+
         #             if p < record.num_frames:
         #                 p += (i+1) * interval
 
